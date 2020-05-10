@@ -1,0 +1,9 @@
+@import "~bootstrap/scss/bootstrap";
+
+.slide-enter-active, .slide-leave-active {
+  transition: all 1s;
+}
+
+.slide-enter, .slide-leave-to {
+  transform: translateX(-100px);
+}
