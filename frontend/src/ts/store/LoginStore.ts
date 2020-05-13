@@ -1,27 +1,35 @@
 import Vue from 'vue';
-import Vuex, {ActionContext, StoreOptions} from 'vuex';
+import Vuex, {ActionContext, ModuleTree, StoreOptions} from 'vuex';
 import { GetterTree, MutationTree, ActionTree, Store } from 'vuex';
 import axios from 'axios';
 import config from '../config';
 
+import ServerStore from "./servers/ServerStore";
+
 Vue.use(Vuex);
 
-class LoginState {
+export class LoginState {
     public username?: string;
     public apiKey?: string = localStorage.getItem("api_key") || undefined;
     public displayName?: string;
 }
 
-export default new Store(<StoreOptions<LoginState>>{
+let store = new Store(<StoreOptions<LoginState>>{
     state: new LoginState(),
     mutations: <MutationTree<LoginState>> {
         assignLogin: (state, payload) => {
-            state.apiKey = payload.key;
+            Vue.set(state, 'apiKey', payload.key);
             axios.defaults.headers.common["X-AUTH-TOKEN"] = payload.key;
             localStorage.setItem("api_key", payload.key);
         },
+        setInfo(state: LoginState, payload: any) {
+            Vue.set(state, 'username', payload.username);
+            Vue.set(state, 'displayName', payload.display_name);
+        },
         invalidateLogin(state: LoginState) {
-            state.apiKey = undefined;
+            Vue.set(state, 'apiKey', undefined);
+            Vue.set(state, 'username', undefined);
+            Vue.set(state, 'displayName', undefined);
             localStorage.removeItem("api_key");
             axios.defaults.headers.common["X-AUTH-TOKEN"] = "";
         }
@@ -48,6 +56,26 @@ export default new Store(<StoreOptions<LoginState>>{
                 return Promise.reject(new Error(response.data));
             }
             context.commit("assignLogin", response.data);
+            await context.dispatch('getUserInfo');
+        },
+        async getUserInfo(context: ActionContext<LoginState, LoginState>) {
+            const response = await axios.get(config.baseUrl + "/api/user/get_info");
+            if (response.status !== 200) {
+                return Promise.reject(new Error(response.data));
+            }
+            context.commit('setInfo', response.data);
+        },
+        async logout(context: ActionContext<LoginState, LoginState>) {
+            const response = await axios.get(config.baseUrl + "/api/user/logout");
+            if (response.status !== 200) {
+                alert("You are already logged out!");
+            }
+            context.commit("invalidateLogin");
         }
+    },
+    modules: <ModuleTree<LoginState>> {
+        servers: ServerStore
     }
-})
+});
+
+export default store;

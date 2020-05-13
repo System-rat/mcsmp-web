@@ -23,5 +23,11 @@ services:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
 
+    App\Util\ConnectorInterface:
+        arguments:
+            $connectorUrl: '%env(CONNECTOR_URL)%'
+            $connectorSecret: '%env(CONNECTOR_SECRET)%'
+            $connectorSubdir: '%env(CONNECTOR_SUBDIR)%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
