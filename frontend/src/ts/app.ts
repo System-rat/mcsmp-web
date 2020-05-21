@@ -16,14 +16,18 @@ import Vue from 'vue';
 // @ts-ignore
 import Login from './Login';
 // @ts-ignore
+import ConnectorList from './components/ConnectorList';
+// @ts-ignore
 import ServerList from "./components/ServerList.vue";
 import store from './store/LoginStore';
 import {mapGetters} from "vuex";
 import axios from 'axios';
 import config from "./config";
+import router from './routes/router';
 
 new Vue({
     el: '#app',
+    router,
     store,
     methods: {
         async doStuff() {
@@ -42,7 +46,8 @@ new Vue({
     },
     components: {
         Login,
-        ServerList
+        ServerList,
+        ConnectorList
     },
     template: `
         <div>
@@ -78,9 +83,10 @@ new Vue({
                     <login></login>
                 </transition>
             </div>
-            <div class="container-fluid">
+            <div class="container-fluid mt-3">
                 <div class="row">
-                    <server-list v-if="isLoggedIn"></server-list>
+                    <connector-list class="col-3" v-if="isLoggedIn"></connector-list>
+                    <server-list class="col-9" v-if="isLoggedIn && $store.state.connectors.currentConnector"></server-list>
                 </div>
             </div>
         </div>`,
@@ -98,6 +104,7 @@ new Vue({
         if (key) {
             this.$store.commit('assignLogin', { key })
             await this.$store.dispatch("getUserInfo");
+            await this.$store.dispatch("connectors/getConnectors");
         }
     }
 });

@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\Util\ConnectorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,9 +25,9 @@ class TestController extends AbstractController
     }
 
     /**
-     * @Route("/available_servers")
+     * @Route("/available_servers/{connector}")
      */
-    public function availableServers(Request $request) {
+    public function availableServers(Request $request, int $connector) {
         $options = [];
         $name = $request->query->get("name");
         if ($name !== null) {
@@ -51,9 +50,9 @@ class TestController extends AbstractController
     }
 
     /**
-     * @Route("/get_logs/{name}")
+     * @Route("/get_logs/{connector}/{name}")
      */
-    public function getLogs(string $name) {
+    public function getLogs(string $name, int $connector) {
         $response = $this->connector->request("GET", "/get_log", [
             "query" => [
                 "name" => $name

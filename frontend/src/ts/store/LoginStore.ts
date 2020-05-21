@@ -5,6 +5,7 @@ import axios from 'axios';
 import config from '../config';
 
 import ServerStore from "./servers/ServerStore";
+import ConnectorStore from "./servers/ConnectorStore";
 
 Vue.use(Vuex);
 
@@ -74,7 +75,8 @@ let store = new Store(<StoreOptions<LoginState>>{
         }
     },
     modules: <ModuleTree<LoginState>> {
-        servers: ServerStore
+        servers: ServerStore,
+        connectors: ConnectorStore
     }
 });
 

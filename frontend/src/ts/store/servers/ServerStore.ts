@@ -36,7 +36,7 @@ export default <Module<ServersState, LoginState>> {
     actions: <ActionTree<ServersState, LoginState>> {
         async refreshServers(context: ActionContext<ServersState, LoginState>, payload: any) {
             const params = payload?.name;
-            const response = await axios.get(config.baseUrl + "/api/server/available_servers", {
+            const response = await axios.get(config.baseUrl + "/api/server/available_servers/" + payload.id, {
                 params: params
             });
             if (response.status === 200) {
@@ -53,8 +53,8 @@ export default <Module<ServersState, LoginState>> {
                 context.commit("assignServers", servers);
             }
         },
-        async refreshLogs(context: ActionContext<ServersState, LoginState>, { name }) {
-            const response = await axios.get(config.baseUrl + `/api/server/get_logs/${name}`);
+        async refreshLogs(context: ActionContext<ServersState, LoginState>, { name, id }) {
+            const response = await axios.get(config.baseUrl + `/api/server/get_logs/${id}/${name}`);
             if (response.status === 200) {
                 context.commit("refreshLogs", { name, logs: response.data.log });
             }

@@ -24,11 +24,13 @@
         "build": "encore production --progress"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-free": "^5.13.0",
         "axios": "^0.19.2",
         "bootstrap": "^4.4.1",
         "jquery": "^3.4.1",
         "popper.js": "^1.16.1",
         "vue": "^2.6.11",
+        "vue-router": "^3.2.0",
         "vuex": "^3.3.0"
     }
 }
