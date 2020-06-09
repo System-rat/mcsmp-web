@@ -58,10 +58,10 @@ new Vue({
                 </button>
                 <div class="navbar-collapse collapse" id="navigation">
                     <div class="navbar-nav">
-                        <a class="nav-item nav-link active" href="/">Home</a>
-                        <a class="nav-item nav-link" href="/">Gallery</a>
-                        <a class="nav-item nav-link" href="/">Servers</a>
-                        <a class="nav-item nav-link" href="/">About</a>
+                        <router-link to="/" class="nav-item nav-link">Home</router-link>
+                        <router-link to="/gallery" class="nav-item nav-link">Gallery</router-link>
+                        <router-link to="/servers" class="nav-item nav-link">Servers</router-link>
+                        <router-link to="/about" class="nav-item nav-link">About</router-link>
                     </div>
                 </div>
                 <div class="dropdown">
@@ -84,10 +84,9 @@ new Vue({
                 </transition>
             </div>
             <div class="container-fluid mt-3">
-                <div class="row">
-                    <connector-list class="col-3" v-if="isLoggedIn"></connector-list>
-                    <server-list class="col-9" v-if="isLoggedIn && $store.state.connectors.currentConnector"></server-list>
-                </div>
+                <keep-alive>
+                    <router-view class="row"></router-view>
+                </keep-alive>
             </div>
         </div>`,
     async created() {

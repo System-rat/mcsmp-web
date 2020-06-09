@@ -9,3 +9,7 @@
 .fade-enter, .fade-leave-to {
   opacity: 0;
 }
+
+.router-link-exact-active {
+  @extend .active;
+}

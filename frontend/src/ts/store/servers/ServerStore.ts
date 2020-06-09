@@ -6,6 +6,7 @@ import config from '../../config';
 
 export class ServerInstance {
     public constructor(
+        public connectorId: number,
         public serverName: string,
         public running: boolean,
         public version: string,
@@ -24,7 +25,7 @@ export default <Module<ServersState, LoginState>> {
     state: () => new ServersState(),
     mutations: <MutationTree<ServersState>> {
         assignServers(state: ServersState, payload: any) {
-            state.servers = payload;
+            state.servers = [...state.servers.filter(e => e.connectorId !== payload.connectorId), ...payload.servers];
         },
         refreshLogs(state: ServersState, payload: any) {
             const server = state.servers.find(sr => payload.name === sr.serverName);
@@ -44,13 +45,14 @@ export default <Module<ServersState, LoginState>> {
                 let servers: ServerInstance[] = [];
                 data.forEach(server => {
                     servers.push(new ServerInstance(
+                        payload.id,
                         server.instance.server_name,
                         server.running,
                         server.instance.version.id,
                         server.instance.version.is_snapshot
                     ));
                 });
-                context.commit("assignServers", servers);
+                context.commit("assignServers", { servers, connectorId: payload.id });
             }
         },
         async refreshLogs(context: ActionContext<ServersState, LoginState>, { name, id }) {
