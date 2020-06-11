@@ -21,7 +21,9 @@ pipeline {
         // TODO: add test stage
         stage('Zip artifact') {
             steps {
-                zip archive: true, dir: '', glob: '', zipFile: 'production.zip'
+                script {
+                    zip archive: true, dir: '', glob: '', zipFile: 'production.zip'
+                }
             }
         }
     }
