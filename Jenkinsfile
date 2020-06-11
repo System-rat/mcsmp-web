@@ -24,6 +24,7 @@ pipeline {
             steps {
                 script {
                     zip archive: true, dir: '', glob: '', zipFile: 'production.zip'
+                    archiveArtifacts artifacts: 'production.zip', fingerprint: true
                 }
             }
         }
