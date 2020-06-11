@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         APP_ENV = 'prod'
+        SYMFONY_ENV = 'prod'
     }
 
     stages {
