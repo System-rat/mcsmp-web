@@ -74,7 +74,9 @@ Encore
     .enableVueLoader()
 ;
 let config = Encore.getWebpackConfig();
-config.devServer.proxy = {
-    "*": "http://localhost:8000"
-};
+if (config.devServer) {
+    config.devServer.proxy = {
+        "*": "http://localhost:8000"
+    };
+}
 module.exports = config;
