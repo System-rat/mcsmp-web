@@ -1,7 +1,7 @@
 <template>
     <div class="row">
-        <connector-list class="col-3" v-if="isLoggedIn"></connector-list>
-        <server-list class="col-9" v-if="isLoggedIn && $store.state.connectors.currentConnector"></server-list>
+        <connector-list class="col-12 col-md-3" v-if="isLoggedIn"></connector-list>
+        <server-list class="col-12 col-md-9" v-if="isLoggedIn && $store.state.connectors.currentConnector"></server-list>
     </div>
 </template>
 

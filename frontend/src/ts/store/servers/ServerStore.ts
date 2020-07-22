@@ -16,6 +16,16 @@ export class ServerInstance {
     }
 }
 
+export class ServerInstanceEdit {
+    public version: string;
+    public isSnapshot: boolean;
+
+    public constructor(instance: ServerInstance) {
+        this.isSnapshot = instance.isSnapshot;
+        this.version = instance.version;
+    }
+}
+
 export class ServersState {
     public servers: Array<ServerInstance> = [];
 }
@@ -32,6 +42,16 @@ export default <Module<ServersState, LoginState>> {
             if (server) {
                 server.logs = payload.logs;
             }
+        }
+    },
+    getters: <GetterTree<ServersState, LoginState>> {
+        getServersByConnector(state: ServersState) : ((connectorId: number) => Array<ServerInstance>) {
+            return (connectorId: number) : Array<ServerInstance> => {
+                return state.servers.filter(el => el.connectorId === connectorId);
+            }
+        },
+        test(state: ServersState) : number {
+            return state.servers[0].connectorId;
         }
     },
     actions: <ActionTree<ServersState, LoginState>> {

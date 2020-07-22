@@ -137,7 +137,7 @@ class ConnectorController extends AbstractController
 
     private function getConnectorStatus(Connector $connector) {
         try {
-            if ($connector->sendRequest("GET", "/heartbeat", ["timeout" => 2.5])->getStatusCode() === 200) {
+            if ($connector->sendRequest("GET", "/heartbeat", ["timeout" => 5.5])->getStatusCode() === 200) {
                 return "alive";
             } else {
                 return "probably alive i really don't know lmao";

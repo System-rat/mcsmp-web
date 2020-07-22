@@ -1,10 +1,11 @@
 <template>
-    <div class="container-fluid ml-1 mr-1">
-        <div class="col-4-lg">
-            <div class="row">
-                <ul class="list-group" v-if="connectors">
-                    <li class="list-group-item p-0" v-for="connector of connectors">
-                        <a href="#" class="d-inline-block p-3 m-0 text-decoration-none w-100 text-left" @click="selectedConnector = connector">
+    <div class="ml-1 mr-1">
+        <div class="col-12 col-md-3">
+            <div class="w-100 shadow border p-1">
+                <button v-if="selectedConnector !== ''" class="btn" @click="selectedConnector = ''"> &lt; </button>
+                <ul class="list-group list-group-flush w-100" v-if="connectors && selectedConnector === ''">
+                    <li class="list-group-item p-0 w-100" v-for="connector of connectors" v-bind:key="connector.id">
+                        <a href="#" class="d-inline-block p-3 m-0 text-decoration-none w-100 text-left" @click="selectConnector(connector)">
                             <span @click="selectedConnector = connector" class="text-reset">
                                 {{ connector.host + ':' + connector.port + '/' + (connector.subDirectory == null ? '' : connector.subDirectory)  }}
                             </span>
@@ -21,10 +22,15 @@
                         </a>
                     </li>
                 </ul>
+                <ul class="list-group list-group-flush w-100" v-if="selectedConnector !== ''">
+                    <li class="list-group-item p-0 w-100" v-for="server of getServersByConnector(selectedConnector.id)" v-bind:key="server.serverName">
+                        <a class="d-inline-block p-3 m-0 text-decoration-none w-100 text-left" href="#" @click="selectedServer = server">{{ server.serverName }} </a>
+                    </li>
+                </ul>
             </div>
         </div>
-        <div class="col-8-lg" v-if="typeof(selectedConnector) !== 'string'">
-            Selected connector {{ selectedConnector.host }}
+        <div class="col-12 col-md-9 shadow border p-1" v-if="selectedServer !== ''">
+            <server-editor :server="selectedServer"></server-editor>
         </div>
         <div class="modal show fade" id="create-connector-modal">
             <form class="modal-dialog" @submit="createConnector">
@@ -61,19 +67,28 @@
 <script lang="ts">
     import Vue from 'vue';
     import Component from "vue-class-component";
-    import {mapState} from "vuex";
+    import {mapState, mapGetters} from "vuex";
     import {Connector} from "../../store/servers/ConnectorStore";
     import $ from 'jquery';
+    import { ServerInstance } from '../../store/servers/ServerStore';
+    import ServerEditor from './ServerEditor.vue';
 
     @Component({
         computed: {
             ...mapState('connectors', [
                 'connectors'
-            ])
+            ]),
+            ...mapGetters('servers', {
+                getServersByConnector: 'getServersByConnector'
+            })
+        },
+        components: {
+            ServerEditor
         }
     })
     export default class ServerEditorList extends Vue {
         private selectedConnector: Connector | string = '';
+        private selectedServer: ServerInstance | string = '';
         private newConnector = {
             host: '',
             port: 1337,
@@ -94,6 +109,11 @@
             this.hasError = false;
         }
 
+        selectConnector(con: Connector) {
+            this.selectedConnector = con;
+            this.$store.dispatch('servers/refreshServers', {id: this.selectedConnector.id});
+        }
+
         async createConnector() {
             this.isCreating = true;
             if (await this.$store.dispatch('connectors/createConnector', this.newConnector)) {
@@ -108,7 +128,7 @@
 
 <style scoped>
     .list-group-item:hover {
-        background-color: gray;
+        background-color: lightgray;
         transition: background-color 80ms ease;
     }
 </style>
