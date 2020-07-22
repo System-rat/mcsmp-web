@@ -43,15 +43,7 @@ class ConnectorController extends AbstractController
                 "token" => $connector->getToken(),
                 "subDirectory" => $connector->getSubDirectory()
             ];
-            try {
-                if ($connector->sendRequest("GET", "/heartbeat", ["timeout" => 2.5])->getStatusCode() === 200) {
-                    $connectorArray["status"] = "alive";
-                } else {
-                    $connectorArray["status"] = "probably alive i really don't know lmao";
-                }
-            } catch (TransportExceptionInterface $e) {
-                $connectorArray["status"] = "dead";
-            }
+            $connectorArray["status"] = $this->getConnectorStatus($connector);
             $connectorResponse["connectors"][] = $connectorArray;
         }
 
@@ -62,7 +54,7 @@ class ConnectorController extends AbstractController
      * @Route(path="/create_connector", methods={"POST"})
      */
     public function createConnector(Request $request) {
-        if (!$request->request->has("host")) {
+        if (!$request->request->has("host") && !$request->request->get("host") === "") {
             return new JsonResponse(["message" => "Missing required fields."], Response::HTTP_BAD_REQUEST);
         }
 
@@ -80,7 +72,11 @@ class ConnectorController extends AbstractController
         $this->em->persist($connector);
         $this->em->flush();
 
-        return new JsonResponse(["message" => "Connector created", "result" => $connector->getId()]);
+        return new JsonResponse([
+            "message" => "Connector created",
+            "result" => $connector->getId(),
+            "status" => $this->getConnectorStatus($connector)
+        ]);
     }
 
     /**
@@ -118,7 +114,11 @@ class ConnectorController extends AbstractController
         }
 
         $this->em->flush();
-        return new JsonResponse(["message" => "Updated connector", "result" => $connector]);
+        return new JsonResponse([
+            "message" => "Updated connector",
+            "result" => $connector,
+            "status" => $this->getConnectorStatus($connector)
+        ]);
     }
 
     /**
@@ -133,5 +133,17 @@ class ConnectorController extends AbstractController
         $this->em->remove($connector);
         $this->em->flush();
         return new JsonResponse(["message" => "Connector deleted"]);
+    }
+
+    private function getConnectorStatus(Connector $connector) {
+        try {
+            if ($connector->sendRequest("GET", "/heartbeat", ["timeout" => 2.5])->getStatusCode() === 200) {
+                return "alive";
+            } else {
+                return "probably alive i really don't know lmao";
+            }
+        } catch (TransportExceptionInterface $e) {
+            return "dead";
+        }
     }
 }

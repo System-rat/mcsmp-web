@@ -27,6 +27,9 @@ export default <Module<ConnectorState, LoginState>> {
         assignConnectors(state: ConnectorState, payload: any) {
             state.connectors = payload;
             state.currentConnector = state.connectors[0];
+        },
+        addConnector(state: ConnectorState, payload: any) {
+            state.connectors.push(payload);
         }
     },
     actions: <ActionTree<ConnectorState, LoginState>> {
@@ -47,6 +50,32 @@ export default <Module<ConnectorState, LoginState>> {
                 });
                 context.commit("assignConnectors", connectors);
             }
+        },
+
+        async createConnector(context: ActionContext<ConnectorState, LoginState>, payload: any) : Promise<boolean> {
+            const data = new URLSearchParams();
+            data.append('host', payload.host);
+            data.append('port', payload.port);
+            if (payload.token !== '') {
+                data.append('token', payload.token);
+            }
+            if (payload.sub_directory !== '') {
+                data.append('sub_directory', payload.sub_directory);
+            }
+            const response = await axios.post(config.baseUrl + '/api/connector/create_connector', data);
+            if (response.status === 200) {
+                const newConnector = new Connector(
+                    response.data.result,
+                    response.data.status,
+                    payload.host,
+                    payload.port,
+                    payload.sub_directory === '' ? null : payload.sub_directory,
+                    payload.token === '' ? null : payload.token
+                );
+                await context.commit('addConnector', newConnector);
+                return true;
+            }
+            return false;
         }
     },
     getters: <GetterTree<ConnectorState, LoginState>> {

@@ -27,7 +27,7 @@ class Connector
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private string $subDirectory;
+    private ?string $subDirectory;
 
     /**
      * @ORM\Column(type="integer")
@@ -59,7 +59,7 @@ class Connector
     /**
      * @return string
      */
-    public function getSubDirectory(): string
+    public function getSubDirectory(): ?string
     {
         return $this->subDirectory;
     }
@@ -67,7 +67,7 @@ class Connector
     /**
      * @param string $subDirectory
      */
-    public function setSubDirectory(string $subDirectory): void
+    public function setSubDirectory(?string $subDirectory): void
     {
         $this->subDirectory = $subDirectory;
     }

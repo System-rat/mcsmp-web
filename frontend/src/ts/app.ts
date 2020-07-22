@@ -93,7 +93,7 @@ new Vue({
 
 
         axios.interceptors.response.use(response => response, error => {
-            if (error.response.data.message === "Error with token") {
+            if (error.response && error.response.data.message === "Error with token") {
                 this.$store.commit("invalidateLogin");
                 alert("There was an error with your current session, please login.");
             }

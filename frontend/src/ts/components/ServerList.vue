@@ -23,7 +23,7 @@
                             <span class="text-monospace" :class="[server.running ? 'text-success' : 'text-danger']"> {{ server.running ? "running" : "stopped" }} </span>
                             <p> Version: {{ server.version }} <span v-if="server.isSnapshot" class="warning"> snapshot </span></p>
                             <button class="btn btn-link mb-1" :data-toggle="'collapse'" :data-target="'#logs-' + server.serverName"> Show logs </button>
-                            <div :id="'logs-' + server.serverName" class="collapse p-2 border rounded" :data-parent="'#serverList'" >
+                            <div :id="'logs-' + server.serverName" class="collapse p-2 border rounded log-list" :data-parent="'#serverList'" >
                                 <button class="btn btn-link mb-1" @click="refreshLogs(server.serverName)"><i class="fas fa-redo"></i></button>
                                 <div v-if="logsLoading" class="m-auto text-center">
                                     <div class="spinner-border text-primary" v-if="loading"></div>
@@ -84,5 +84,8 @@
 </script>
 
 <style scoped>
-
+    .log-list {
+        max-height: 500px;
+        overflow-y: scroll;
+    }
 </style>

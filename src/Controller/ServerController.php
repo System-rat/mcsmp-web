@@ -4,6 +4,7 @@
 namespace App\Controller;
 
 
+use App\Repository\ConnectorRepository;
 use App\Util\ConnectorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,19 +16,25 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 /**
  * @Route(path="/api/server")
  */
-class TestController extends AbstractController
+class ServerController extends AbstractController
 {
-    private ConnectorInterface $connector;
+    private ConnectorRepository $connectorRepository;
 
-    public function __construct(ConnectorInterface $connector)
+    public function __construct(ConnectorRepository $connectorRepository)
     {
-        $this->connector = $connector;
+        $this->connectorRepository = $connectorRepository;
     }
 
     /**
      * @Route("/available_servers/{connector}")
      */
     public function availableServers(Request $request, int $connector) {
+        $con = $this->connectorRepository->find($connector);
+        if (!$con) {
+            return new JsonResponse([
+                "message" => "Connector does not exist"
+            ], Response::HTTP_BAD_REQUEST);
+        }
         $options = [];
         $name = $request->query->get("name");
         if ($name !== null) {
@@ -36,7 +43,7 @@ class TestController extends AbstractController
             ];
         }
         try {
-            $response = $this->connector->request("GET", "/available_servers", $options);
+            $response = $con->sendRequest("GET", "/available_servers", $options);
             if ($response->getStatusCode() === 200) {
                 return new Response($response->getContent());
             } else {
@@ -53,11 +60,21 @@ class TestController extends AbstractController
      * @Route("/get_logs/{connector}/{name}")
      */
     public function getLogs(string $name, int $connector) {
-        $response = $this->connector->request("GET", "/get_log", [
+        $con = $this->connectorRepository->find($connector);
+        if (!$con) {
+            return new JsonResponse([
+                "message" => "Connector does not exist"
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        $response = $con->sendRequest("GET", "/get_log", [
             "query" => [
                 "name" => $name
             ]
         ]);
         return new Response($response->getContent(false), $response->getStatusCode());
+    }
+
+    public function startServer(string $name, int $connector) {
+
     }
 }
