@@ -54,7 +54,7 @@
         private logsLoading: boolean = false;
 
         get servers(): Array<ServerInstance> {
-            return this.$store.state.servers.servers;
+            return this.$store.getters['servers/getServersByConnector'](this.$store.state.connectors.currentConnector.id);
         }
 
         async refreshServers() {
