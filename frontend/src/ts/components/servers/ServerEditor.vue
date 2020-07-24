@@ -7,13 +7,22 @@
         <div class="row">
             <form ref="form" class="col-12 col-md-5">
                 <div class="form-group">
+                    <h5> Status </h5>
+                    <div class="d-flex flex-row align-items-center">
+                        <span :class="{ 'text-success': server.running, 'text-danger': !server.running }" class="mx-1">{{ server.running ? 'running' : 'stopped' }}</span>
+                        <button type="button" @click="toggleServer()" class="mx-1 btn" :class="{ 'btn-success': !server.running, 'btn-danger': server.running }">
+                            {{ server.running ? 'Stop' : 'Start' }}
+                        </button>
+                        <button type="button" class="mx-1 btn btn-warning" @click="restartServer()">Restart</button>
+                        <div class="mx-1 spinner-border text-primary" v-if="togglingServer"></div>
+                    </div>
                     <h5> Versioning </h5>
                     <div class="form-group">
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text"> Server version </span>
                             </div>
-                            <input class="form-control" type="text" id="server-version-field" @input="serverDirty = true" v-model="serverForEdit.version" />
+                            <version-picker class="custom-control custom-select" id="server-version-field" @input="serverDirty = true" v-model="serverForEdit.version" :showSnapshots="serverForEdit.isSnapshot" />
                             <div class="input-group-append">
                                 <div class="input-group-text">
                                     Snapshot?&nbsp;
@@ -42,6 +51,7 @@
             <div class="col-12 col-md-7 p-1">
                 <h6> Properties </h6>
                 <hr />
+                <div v-if="isLoading" class="progress"><div class="progress-bar w-100 progress-bar-striped progress-bar-animated"></div></div>
                 <div class="border">
                     <ul class="list-group-flush" id="properties-list">
                         <li class="list-group-item" v-for="(prop, propKey) in serverForEdit.properties" v-bind:key="propKey">
@@ -64,8 +74,13 @@
     import Component from "vue-class-component";
     import { Prop, Watch } from "vue-property-decorator";
     import { ServerInstance, ServerInstanceEdit } from "../../store/servers/ServerStore";
+    import VersionPicker from './VersionPicker.vue';
 
-    @Component
+    @Component({
+        components: {
+            VersionPicker
+        }
+    })
     export default class ServerEditor extends Vue {
         @Prop({required: true})
         private server!: ServerInstance;
@@ -74,6 +89,8 @@
         private serverDirty: boolean = false;
         private propertiesDirty: boolean = false;
         private isDownloading: boolean = false;
+        private isLoading: boolean = false;
+        private togglingServer: boolean = false;
 
         @Watch('server')
         onServerPropertyUpdated(_value: ServerInstance, _oldValue: ServerInstance) {
@@ -90,22 +107,43 @@
             this.serverDirty = false;
         }
 
-        created() {
+        mounted() {
             // why is this still a thing?
             $(function () {
                 (<any>$('[data-toggle="tooltip"]')).tooltip();
-            })
+            });
         }
 
         async downloadLatest(isSnapshot: boolean) {
             this.isDownloading = true;
-            await this.$store.dispatch("servers/downloadLatest", {
-                name: this.server.serverName,
-                id: this.server.connectorId,
-                snapshot: isSnapshot
-            });
+            try {
+                await this.$store.dispatch("servers/downloadLatest", {
+                    name: this.server.serverName,
+                    id: this.server.connectorId,
+                    snapshot: isSnapshot
+                });
+            } catch (err) {
+                window.alert(err);                
+            }
             this.isDownloading = false;
             this.reset();
+        }
+
+        async toggleServer() {
+            this.togglingServer = true;
+            if (this.server.running) {
+                await this.$store.dispatch("servers/stopServer", { name: this.server.serverName, id: this.server.connectorId });
+            } else {
+                await this.$store.dispatch("servers/startServer", { name: this.server.serverName, id: this.server.connectorId });
+            }
+            this.togglingServer = false;
+        }
+
+        async restartServer() {
+            this.togglingServer = true;
+            await this.$store.dispatch("servers/stopServer", { name: this.server.serverName, id: this.server.connectorId });
+            await this.$store.dispatch("servers/startServer", { name: this.server.serverName, id: this.server.connectorId });
+            this.togglingServer = false;
         }
 
         async apply() {
@@ -143,5 +181,9 @@
                 border-bottom: solid 1px;
             }
         }
+    }
+    select {
+        -moz-appearance: none;
+        -webkit-appearance: none;
     }
 </style>

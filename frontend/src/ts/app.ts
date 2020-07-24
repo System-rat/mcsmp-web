@@ -56,22 +56,22 @@ new Vue({
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse" id="navigation">
+                <div class="navbar-collapse collapse w-100 justify-content-between" id="navigation">
                     <div class="navbar-nav">
                         <router-link to="/" class="nav-item nav-link">Home</router-link>
                         <router-link to="/gallery" class="nav-item nav-link">Gallery</router-link>
                         <router-link to="/servers" class="nav-item nav-link">Servers</router-link>
                         <router-link to="/about" class="nav-item nav-link">About</router-link>
                     </div>
-                </div>
-                <div class="dropdown">
-                    <a v-if="readableName !== undefined" class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-                        Logged in as: {{ readableName }}
-                    </a>
-                    <div class="dropdown-menu">
-                        <a href="#" class="dropdown-item" v-if="isLoggedIn" @click.prevent="logout">
-                            Logout
+                    <div class="dropdown">
+                        <a v-if="readableName !== undefined" class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+                            Logged in as: {{ readableName }}
                         </a>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item" v-if="isLoggedIn" @click.prevent="logout">
+                                Logout
+                            </a>
+                        </div>
                     </div>
                 </div>
             </nav>

@@ -157,8 +157,63 @@ class ServerController extends AbstractController
         }
     }
 
-    public function startServer(string $name, int $connector) {
+    /**
+     * @Route(path="/stop_server/{connector}/{name}", methods={"POST"})
+     */
+    public function stopServer(string $name, string $connector) {
+        $con = $this->connectorRepository->find($connector);
+        if (!$con) {
+            return $this->connectorNotFound;
+        }
 
+        try {
+            $response = $con->sendRequest("POST", "/stop_server/${name}");
+            if ($response->getStatusCode() === Response::HTTP_OK) {
+                $responseData = json_decode($response->getContent(false));
+                return new JsonResponse([
+                    "is_snapshot" => $responseData->new_state->instance->version->is_snapshot,
+                    "version" => $responseData->new_state->instance->version->id,
+                    "running" => $responseData->new_state->running
+                ], Response::HTTP_OK);
+            } else {
+                return new JsonResponse([
+                    "message" => "Error with request"
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        } catch (TransportExceptionInterface $e) {
+            return new JsonResponse([
+                "message" => "Error with connector"
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
+    /**
+     * @Route(path="/start_server/{connector}/{name}", methods={"POST"})
+     */
+    public function startServer(string $name, string $connector) {
+        $con = $this->connectorRepository->find($connector);
+        if (!$con) {
+            return $this->connectorNotFound;
+        }
+
+        try {
+            $response = $con->sendRequest("POST", "/start_server/${name}");
+            if ($response->getStatusCode() === Response::HTTP_OK) {
+                $responseData = json_decode($response->getContent(false));
+                return new JsonResponse([
+                    "is_snapshot" => $responseData->new_state->instance->version->is_snapshot,
+                    "version" => $responseData->new_state->instance->version->id,
+                    "running" => $responseData->new_state->running
+                ], Response::HTTP_OK);
+            } else {
+                return new JsonResponse([
+                    "message" => "Error with request"
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        } catch (TransportExceptionInterface $e) {
+            return new JsonResponse([
+                "message" => "Error with connector"
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

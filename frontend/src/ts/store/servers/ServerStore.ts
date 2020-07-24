@@ -12,7 +12,7 @@ export class ServerInstance {
         public version: string,
         public isSnapshot: boolean,
         public logs: string | null = null,
-        public properties: Record<string, any> | null = null
+        public properties: Record<string, any> = []
     ) {
     }
 }
@@ -61,6 +61,7 @@ export default <Module<ServersState, LoginState>> {
             if (server) {
                 server.version = payload.version || server.version;
                 server.isSnapshot = payload.is_snapshot || server.isSnapshot;
+                server.running = payload.running;
             }
         }
     },
@@ -76,6 +77,7 @@ export default <Module<ServersState, LoginState>> {
     },
     actions: <ActionTree<ServersState, LoginState>> {
         async refreshServers(context: ServerContext, payload: any) {
+            context.commit("assignServers", { servers: [], connectorId: payload.id });
             const params = payload?.name;
             const response = await axios.get(config.baseUrl + "/api/server/available_servers/" + payload.id, {
                 params: params
@@ -83,7 +85,6 @@ export default <Module<ServersState, LoginState>> {
             if (response.status === 200) {
                 const data = <Array<any>>response.data.data;
                 let servers: ServerInstance[] = [];
-                let serverPropertiesPromises: Array<Promise<any>> = [];
                 data.forEach(server => {
                     servers.push(new ServerInstance(
                         payload.id,
@@ -92,10 +93,9 @@ export default <Module<ServersState, LoginState>> {
                         server.instance.version.id,
                         server.instance.version.is_snapshot
                     ));
-                    serverPropertiesPromises.push(context.dispatch("refreshProperties", { name: server.instance.server_name, id: payload.id }));
+                    context.dispatch("refreshProperties", { name: server.instance.server_name, id: payload.id });
                 });
                 context.commit("assignServers", { servers, connectorId: payload.id });
-                await Promise.all(serverPropertiesPromises);
             }
         },
         async refreshLogs(context: ServerContext, { name, id }) {
@@ -129,6 +129,18 @@ export default <Module<ServersState, LoginState>> {
             const response = await axios.post(config.baseUrl + `/api/server/download_latest/${id}/${name}`, params);
             if (response.status === 200) {
                 context.commit("setServerInfo", { name, ...response.data });
+            }
+        },
+        async stopServer(context: ServerContext, { name, id }) {
+            const response = await axios.post(config.baseUrl + `/api/server/stop_server/${id}/${name}`);
+            if (response.status === 200) {
+                context.commit("setServerInfo", { name, ...response.data});
+            }
+        },
+        async startServer(context: ServerContext, { name, id }) {
+            const response = await axios.post(config.baseUrl + `/api/server/start_server/${id}/${name}`);
+            if (response.status === 200) {
+                context.commit("setServerInfo", { name, ...response.data});
             }
         }
     }

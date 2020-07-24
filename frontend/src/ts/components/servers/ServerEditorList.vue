@@ -3,6 +3,7 @@
         <div class="col-12 col-md-3">
             <div class="w-100 shadow border p-1">
                 <button v-if="selectedConnector !== ''" class="btn" @click="selectedConnector = ''"> &lt; </button>
+                <div v-if="loading" class="progress"><div class="progress-bar w-100 progress-bar-striped progress-bar-animated"></div></div>
                 <ul class="list-group list-group-flush w-100" v-if="connectors && selectedConnector === ''">
                     <li class="list-group-item p-0 w-100" v-for="connector of connectors" v-bind:key="connector.id">
                         <a href="#" class="d-inline-block p-3 m-0 text-decoration-none w-100 text-left" @click="selectConnector(connector)">
@@ -97,6 +98,7 @@
         }
         private isCreating = false;
         private hasError = false;
+        private loading = false;
 
         toggleCreateConnectorModal() {
             (<any>$('#create-connector-modal')).modal('toggle');
@@ -109,9 +111,16 @@
             this.hasError = false;
         }
 
-        selectConnector(con: Connector) {
+        async selectConnector(con: Connector) {
+            this.loading = true;
             this.selectedConnector = con;
-            this.$store.dispatch('servers/refreshServers', {id: this.selectedConnector.id});
+            await this.$store.dispatch('servers/refreshServers', {id: this.selectedConnector.id});
+            this.loading = false;
+        }
+
+        activated() {
+            this.selectedConnector = '';
+            this.selectedServer = '';
         }
 
         async createConnector() {
