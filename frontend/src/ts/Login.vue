@@ -36,6 +36,7 @@
     import Component from "vue-class-component";
     import { mapGetters } from "vuex";
     import $ from 'jquery';
+import config from './config';
 
     @Component({
         computed: {
@@ -51,15 +52,9 @@
                 username: this.username,
                 authenticator: this.authenticator
             });
-            alert("Logged in.");
+            config.eventBus.$emit('notify-info', "Logged in.");
             this.username = "";
             this.authenticator = "";
-        }
-
-        mounted() {
-            if (!this.$store.getters.isLoggedIn) {
-                (<any>$("#loginModal")).modal("show");
-            }
         }
 
         get thing(): string {

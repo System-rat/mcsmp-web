@@ -19,6 +19,8 @@ import Login from './Login';
 import ConnectorList from './components/ConnectorList';
 // @ts-ignore
 import ServerList from "./components/ServerList.vue";
+// @ts-ignore
+import NotificationHolder from './components/notifications/NotificationHolder.vue';
 import store from './store/LoginStore';
 import {mapGetters} from "vuex";
 import axios from 'axios';
@@ -47,10 +49,12 @@ new Vue({
     components: {
         Login,
         ServerList,
-        ConnectorList
+        ConnectorList,
+        NotificationHolder
     },
     template: `
         <div>
+            <notification-holder></notification-holder>
             <nav class="navbar sticky-top navbar-expand-md navbar-dark bg-dark">
                 <a class="navbar-brand" href="#">MC-SMP</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation">
@@ -67,7 +71,7 @@ new Vue({
                         <a v-if="readableName !== undefined" class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
                             Logged in as: {{ readableName }}
                         </a>
-                        <div class="dropdown-menu">
+                        <div class="dropdown-menu w-100">
                             <a href="#" class="dropdown-item" v-if="isLoggedIn" @click.prevent="logout">
                                 Logout
                             </a>
@@ -83,7 +87,7 @@ new Vue({
                     <login></login>
                 </transition>
             </div>
-            <div class="container-fluid mt-3">
+            <div class="container-fluid mt-3" v-if="isLoggedIn">
                 <keep-alive>
                     <router-view class="row"></router-view>
                 </keep-alive>
@@ -95,7 +99,7 @@ new Vue({
         axios.interceptors.response.use(response => response, error => {
             if (error.response && error.response.data.message === "Error with token") {
                 this.$store.commit("invalidateLogin");
-                alert("There was an error with your current session, please login.");
+                config.eventBus.$emit('notify-error', "There was an error with your current session, please login.");
             }
             return Promise.reject(error);
         })

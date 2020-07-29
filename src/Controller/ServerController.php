@@ -114,6 +114,11 @@ class ServerController extends AbstractController
                     "properties" => json_decode($properties)
                 ])
             ]);
+            if ($response->getStatusCode() === Response::HTTP_INTERNAL_SERVER_ERROR) {
+                return new JsonResponse([
+                    "message" => "Incorrect property values"
+                ], Response::HTTP_BAD_REQUEST);
+            }
             return new Response($response->getContent(false), $response->getStatusCode());
         } catch (TransportExceptionInterface $e) {
             return new JsonResponse([
@@ -143,11 +148,48 @@ class ServerController extends AbstractController
                 $responseData = json_decode($response->getContent(false));
                 return new JsonResponse([
                     "is_snapshot" => $responseData->new_state->instance->version->is_snapshot,
-                    "version" => $responseData->new_state->instance->version->id
+                    "version" => $responseData->new_state->instance->version->id,
+                    "running" => $responseData->new_state->running
                 ], Response::HTTP_OK);
             } else {
                 return new JsonResponse([
-                    "message" => "Error with request"
+                    "message" => "Error with download"
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        } catch (TransportExceptionInterface $e) {
+            return new JsonResponse([
+                "message" => "Error with connector"
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * @Route(path="/download_version/{connector}/{name}", methods={"POST"})
+     */
+    public function downloadVersion(Request $request, string $name, string $connector) {
+        $con = $this->connectorRepository->find($connector);
+        if (!$con) {
+            return $this->connectorNotFound;
+        }
+
+        $version = $request->request->get("version");
+
+        try {
+            $response = $con->sendRequest("POST", "/set_version/${name}", [
+                "body" => [
+                    "version" => $version
+                ]
+            ]);
+            if ($response->getStatusCode() === Response::HTTP_OK) {
+                $responseData = json_decode($response->getContent(false));
+                return new JsonResponse([
+                    "is_snapshot" => $responseData->new_state->instance->version->is_snapshot,
+                    "version" => $responseData->new_state->instance->version->id,
+                    "running" => $responseData->new_state->running
+                ], Response::HTTP_OK);
+            } else {
+                return new JsonResponse([
+                    "message" => "Error with download"
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
         } catch (TransportExceptionInterface $e) {

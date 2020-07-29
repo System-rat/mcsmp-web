@@ -1,6 +1,6 @@
 <template>
     <div class="container-fluid p-2">
-        <div class="d-block">
+        <div ref="serverHeader">
             <h5> {{ server.serverName }} </h5>
             <hr />
         </div>
@@ -25,8 +25,8 @@
                             <version-picker class="custom-control custom-select" id="server-version-field" @input="serverDirty = true" v-model="serverForEdit.version" :showSnapshots="serverForEdit.isSnapshot" />
                             <div class="input-group-append">
                                 <div class="input-group-text">
-                                    Snapshot?&nbsp;
-                                    <input type="checkbox" id="snapshot-field" v-model="serverForEdit.isSnapshot" @input="serverDirty = true" />
+                                    Show snapshots?&nbsp;
+                                    <input type="checkbox" id="snapshot-field" v-model="serverForEdit.isSnapshot" />
                                 </div>
                             </div>
                         </div>
@@ -75,6 +75,7 @@
     import { Prop, Watch } from "vue-property-decorator";
     import { ServerInstance, ServerInstanceEdit } from "../../store/servers/ServerStore";
     import VersionPicker from './VersionPicker.vue';
+import config from "../../config";
 
     @Component({
         components: {
@@ -95,6 +96,23 @@
         @Watch('server')
         onServerPropertyUpdated(_value: ServerInstance, _oldValue: ServerInstance) {
             this.reset();
+            (<HTMLElement>this.$refs.serverHeader).animate([
+                {
+                    transform: 'translateX(0)'
+                },
+                {
+                    transform: 'translateX(10px)'
+                },
+                {
+                    transform: 'translateX(0)'
+                },
+                {
+                    transform: 'translateX(10px)'
+                },
+                {
+                    transform: 'translateX(0)'
+                },
+            ], { duration: 350, easing: 'ease-in-out' }).play();
         }
 
         get isDirty() {
@@ -122,8 +140,9 @@
                     id: this.server.connectorId,
                     snapshot: isSnapshot
                 });
+                config.eventBus.$emit('notify-info', `Server updated to latest ${this.server.isSnapshot ? "snapshot" : "release"}: ${this.server.serverName}`);
             } catch (err) {
-                window.alert(err);                
+                config.eventBus.$emit('notify-error', err);
             }
             this.isDownloading = false;
             this.reset();
@@ -133,8 +152,10 @@
             this.togglingServer = true;
             if (this.server.running) {
                 await this.$store.dispatch("servers/stopServer", { name: this.server.serverName, id: this.server.connectorId });
+                config.eventBus.$emit('notify-info', `Server stopped: ${this.server.serverName}`);
             } else {
                 await this.$store.dispatch("servers/startServer", { name: this.server.serverName, id: this.server.connectorId });
+                config.eventBus.$emit('notify-info', `Server started: ${this.server.serverName}`);
             }
             this.togglingServer = false;
         }
@@ -143,23 +164,39 @@
             this.togglingServer = true;
             await this.$store.dispatch("servers/stopServer", { name: this.server.serverName, id: this.server.connectorId });
             await this.$store.dispatch("servers/startServer", { name: this.server.serverName, id: this.server.connectorId });
+            config.eventBus.$emit('notify-info', `Server restarted: ${this.server.serverName}`);
             this.togglingServer = false;
         }
 
         async apply() {
-            let res = false;
-            if (this.propertiesDirty) {
-                res = await this.$store.dispatch("servers/updateProperties", {
-                    name: this.server.serverName,
-                    id: this.server.connectorId,
-                    properties: this.serverForEdit.properties
-                });
-            }
+            try {
+                let res = false;
+                if (this.propertiesDirty) {
+                    res = await this.$store.dispatch("servers/updateProperties", {
+                        name: this.server.serverName,
+                        id: this.server.connectorId,
+                        properties: this.serverForEdit.properties
+                    });
+                }
 
-            if (res) {
-                this.reset();
-            } else {
-                alert("An error happened");
+                if (this.serverDirty) {
+                    this.isDownloading = true;
+                    res = await this.$store.dispatch("servers/downloadVersion", {
+                        name: this.server.serverName,
+                        id: this.server.connectorId,
+                        version: this.serverForEdit.version
+                    });
+                    this.isDownloading = false;
+                }
+
+                if (res) {
+                    this.reset();
+                    config.eventBus.$emit('notify-info', `Server settings updated: ${this.server.serverName}`);
+                }
+            } catch(err) {
+                if ('response' in err) {
+                    config.eventBus.$emit('notify-error', err.response.data?.message);
+                }
             }
         }
     }

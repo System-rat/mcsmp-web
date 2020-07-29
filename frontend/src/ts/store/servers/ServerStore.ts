@@ -129,7 +129,19 @@ export default <Module<ServersState, LoginState>> {
             const response = await axios.post(config.baseUrl + `/api/server/download_latest/${id}/${name}`, params);
             if (response.status === 200) {
                 context.commit("setServerInfo", { name, ...response.data });
+                return true;
             }
+            return false;
+        },
+        async downloadVersion(context: ServerContext, { name, id, version }) {
+            const params = new URLSearchParams();
+            params.append('version', version);
+            const response = await axios.post(config.baseUrl + `/api/server/download_version/${id}/${name}`, params);
+            if (response.status === 200) {
+                context.commit('setServerInfo', { name, ...response.data });
+                return true;
+            }
+            return false;
         },
         async stopServer(context: ServerContext, { name, id }) {
             const response = await axios.post(config.baseUrl + `/api/server/stop_server/${id}/${name}`);
