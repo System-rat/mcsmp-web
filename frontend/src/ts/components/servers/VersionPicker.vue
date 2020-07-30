@@ -1,6 +1,6 @@
 <template>
-    <select @input="$emit('input', $event.target.value)">
-        <option v-for="version of versionList" v-bind:key="version.versionName" :value="version" :selected="version.versionName === internalValue.versionName">{{ version.versionName }}</option>
+    <select @input="$emit('input', $event.target.value)" :value="internalValue">
+        <option v-for="version of versionList" v-bind:key="version.versionName" :value="version">{{ version.versionName }}</option>
     </select>
 </template>
 
