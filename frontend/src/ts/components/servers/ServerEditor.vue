@@ -94,7 +94,7 @@ import config from "../../config";
         private togglingServer: boolean = false;
 
         @Watch('server')
-        onServerPropertyUpdated(_value: ServerInstance, _oldValue: ServerInstance) {
+        onServerUpdated(_value: ServerInstance, _oldValue: ServerInstance) {
             this.reset();
             (<HTMLElement>this.$refs.serverHeader).animate([
                 {
@@ -114,6 +114,11 @@ import config from "../../config";
                 },
             ], { duration: 350, easing: 'ease-in-out' }).play();
         }
+        
+        @Watch('server.properties')
+        onServerPropertiesUpdated(value: Record<string, any>, _oldValue: Record<string, any>) {
+            this.reset();
+        }
 
         get isDirty() {
             return this.serverDirty || this.propertiesDirty;
@@ -123,6 +128,7 @@ import config from "../../config";
             this.serverForEdit = new ServerInstanceEdit(this.server);
             this.propertiesDirty = false;
             this.serverDirty = false;
+            this.$forceUpdate();
         }
 
         mounted() {
