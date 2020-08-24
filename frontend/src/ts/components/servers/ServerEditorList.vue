@@ -27,12 +27,18 @@
                     <li class="list-group-item p-0 w-100" v-for="server of getServersByConnector(selectedConnector.id)" v-bind:key="server.serverName">
                         <a class="d-inline-block p-3 m-0 text-decoration-none w-100 text-left" href="#" @click="selectedServer = server">{{ server.serverName }} </a>
                     </li>
+                    <li class="list-group-item p-0 text-center">
+                        <a href="#" class="p-3 m-0 text-decoration-none d-inline-block w-100" @click="toggleCreateServerModal()">
+                            <span class="fa fa-plus text-info"></span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
         <div class="col-12 col-md-9 shadow border p-1" v-if="selectedServer !== ''">
-            <server-editor :server="selectedServer"></server-editor>
+            <server-editor :server="selectedServer" @deleted="onServerDeleted(server)"></server-editor>
         </div>
+        <create-server-modal v-if="selectedConnector !== ''" :connectorId="selectedConnector.id" ref="createServerModal"></create-server-modal>
         <div class="modal show fade" id="create-connector-modal">
             <form class="modal-dialog" @submit="createConnector">
                 <div class="modal-content">
@@ -73,6 +79,8 @@
     import $ from 'jquery';
     import { ServerInstance } from '../../store/servers/ServerStore';
     import ServerEditor from './ServerEditor.vue';
+    import CreateServerModal from './CreateServerModal.vue';
+    import config from '../../config';
 
     @Component({
         computed: {
@@ -84,7 +92,8 @@
             })
         },
         components: {
-            ServerEditor
+            ServerEditor,
+            CreateServerModal
         }
     })
     export default class ServerEditorList extends Vue {
@@ -109,6 +118,14 @@
                 sub_directory: ''
             };
             this.hasError = false;
+        }
+
+        async onServerDeleted(server: ServerInstance) {
+            this.selectedServer = '';
+        }
+
+        toggleCreateServerModal() {
+            (<any>this.$refs.createServerModal).toggle();
         }
 
         async selectConnector(con: Connector) {

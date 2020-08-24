@@ -61,6 +61,62 @@ class ServerController extends AbstractController
     }
 
     /**
+     * @Route(path="/create_server/{connector}", methods={"POST"})
+     */
+    public function createServer(Request $request, int $connector) {
+        $con = $this->connectorRepository->find($connector);
+        if (!$con) {
+            return new JsonResponse([
+                "message" => "Connector does not exist"
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        $serverName = $request->request->get("server_name");
+        $serverVersion = $request->request->get("server_version");
+        if ($serverName === null) {
+            return new JsonResponse([
+                "message" => "Required params not set"
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        $body = [
+            "server_name" => $serverName
+        ];
+        if ($serverVersion !== null) {
+            $body["server_version"] = $serverVersion;
+        }
+
+        try {
+            $response = $con->sendRequest("POST", "/create_server", [
+                "body" => json_encode($body)
+            ]);
+            return new Response($response->getContent(false), $response->getStatusCode());
+        } catch (TransportExceptionInterface $e) {
+            return new JsonResponse([
+                "message" => "Error with connector"
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * @Route(path="/delete_server/{connector}/{name}", methods={"DELETE"})
+     */
+    public function deleteServer(int $connector, string $name) {
+        $con = $this->connectorRepository->find($connector);
+        if (!$con) {
+            return new JsonResponse([
+                "message" => "Connector does not exist"
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        try {
+            $response = $con->sendRequest("POST", "/delete_server/$name");
+            return new Response($response->getContent(false), $response->getStatusCode());
+        } catch (TransportExceptionInterface $e) {
+            return new JsonResponse([
+                "message" => "Error with connector"
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
      * @Route("/get_logs/{connector}/{name}")
      */
     public function getLogs(string $name, int $connector) {

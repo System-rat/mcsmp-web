@@ -46,6 +46,10 @@
                             <div class="progress-bar progress-bar-striped progress-bar-animated w-100"> Downloading... </div>
                         </div>
                     </div>
+                    <h5> Management </h5>
+                    <div class="form-group">
+                        <button class="btn btn-danger" type="button" @click="deleteServer(server)"> DELETE SERVER </button>
+                    </div>
                 </div>
             </form>
             <div class="col-12 col-md-7 p-1">
@@ -75,7 +79,8 @@
     import { Prop, Watch } from "vue-property-decorator";
     import { ServerInstance, ServerInstanceEdit } from "../../store/servers/ServerStore";
     import VersionPicker from './VersionPicker.vue';
-import config from "../../config";
+    import config from "../../config";
+import { AlertMessage, AlertType } from "../../models/alert";
 
     @Component({
         components: {
@@ -136,6 +141,29 @@ import config from "../../config";
             $(function () {
                 (<any>$('[data-toggle="tooltip"]')).tooltip();
             });
+        }
+
+        async deleteServer(server: ServerInstance) {
+            const self = this;
+            config.eventBus.$emit('alert', new AlertMessage(
+                `Are you sure you want to delete '${server.serverName}'? THIS ACTION CAN'T BE UNDONE! HEAD MY WORDS!`,
+                `Delete '${server.serverName}'`,
+                AlertType.Critical,
+                true,
+                async (result) => {
+                    if (result) {
+                        try {
+                            await this.$store.dispatch('servers/deleteServer', { name: server.serverName, id: server.connectorId });
+                            config.eventBus.$emit('notify-info', 'Server deleted!');
+                            this.$emit('deleted');
+                        } catch(err) {
+                            if ('response' in err) {
+                                config.eventBus.$emit('notify-error', err.response.data?.message);
+                            }
+                        }
+                    }
+                }
+            ))
         }
 
         async downloadLatest(isSnapshot: boolean) {
@@ -224,9 +252,5 @@ import config from "../../config";
                 border-bottom: solid 1px;
             }
         }
-    }
-    select {
-        -moz-appearance: none;
-        -webkit-appearance: none;
     }
 </style>

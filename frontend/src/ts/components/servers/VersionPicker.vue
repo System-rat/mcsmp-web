@@ -73,5 +73,8 @@
 </script>
 
 <style lang="scss" scoped>
-
+    select {
+        -moz-appearance: none;
+        -webkit-appearance: none;
+    }
 </style>

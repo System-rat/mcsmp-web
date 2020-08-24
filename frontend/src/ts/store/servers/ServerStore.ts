@@ -44,6 +44,12 @@ export default <Module<ServersState, LoginState>> {
         assignServers(state: ServersState, payload: any) {
             state.servers = [...state.servers.filter(e => e.connectorId !== payload.connectorId), ...payload.servers];
         },
+        addServer(state: ServersState, payload: any) {
+            state.servers = [...state.servers, payload];
+        },
+        removeServer(state: ServersState, payload: any) {
+            state.servers = [...state.servers.filter(e => e.connectorId !== payload.id || e.serverName !== payload.name )];
+        },
         refreshLogs(state: ServersState, payload: any) {
             const server = state.servers.find(sr => payload.name === sr.serverName);
             if (server) {
@@ -153,6 +159,28 @@ export default <Module<ServersState, LoginState>> {
             const response = await axios.post(config.baseUrl + `/api/server/start_server/${id}/${name}`);
             if (response.status === 200) {
                 context.commit("setServerInfo", { name, ...response.data});
+            }
+        },
+        async createServer(context: ServerContext, { connectorId, serverName, serverVersion }) {
+            const requestData = new URLSearchParams();
+            requestData.append('server_name', serverName);
+            requestData.append('server_version', serverVersion);
+            const response = await axios.post(config.baseUrl + `/api/server/create_server/${connectorId}`, requestData);
+            const server = response.data.data;
+            if (response.status === 200) {
+                context.commit('addServer', new ServerInstance(
+                    connectorId,
+                    server.instance.server_name,
+                    server.running,
+                    server.instance.version.id,
+                    server.instance.version.is_snapshot
+                ));
+            }
+        },
+        async deleteServer(context: ServerContext, { name, id }) {
+            const response = await axios.delete(config.baseUrl + `/api/server/delete_server/${id}/${name}`);
+            if (response.status === 200) {
+                context.commit("removeServer", { name, id});
             }
         }
     }
