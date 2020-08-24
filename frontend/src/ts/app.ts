@@ -21,6 +21,8 @@ import ConnectorList from './components/ConnectorList';
 import ServerList from "./components/ServerList.vue";
 // @ts-ignore
 import NotificationHolder from './components/notifications/NotificationHolder.vue';
+// @ts-ignore
+import AlertHolder from './components/notifications/AlertHolder.vue';
 import store from './store/LoginStore';
 import {mapGetters} from "vuex";
 import axios from 'axios';
@@ -50,11 +52,13 @@ new Vue({
         Login,
         ServerList,
         ConnectorList,
-        NotificationHolder
+        NotificationHolder,
+        AlertHolder
     },
     template: `
         <div>
             <notification-holder></notification-holder>
+            <alert-holder></alert-holder>
             <nav class="navbar sticky-top navbar-expand-md navbar-dark bg-dark">
                 <a class="navbar-brand" href="#">MC-SMP</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation">
