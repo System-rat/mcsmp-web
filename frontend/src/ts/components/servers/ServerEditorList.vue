@@ -62,8 +62,8 @@
                             <label for="connector-subdir-field">Subdirectory</label>
                             <input v-model="newConnector.sub_directory" class="form-control" id="connector-subdir-field">
                         </div>
-                        <button class="btn btn-secondary" @click="toggleCreateConnectorModal()">Cancel</button>
-                        <button class="btn btn-primary">Create</button>
+                        <button class="btn btn-secondary" type="button" @click="toggleCreateConnectorModal()">Cancel</button>
+                        <button class="btn btn-primary" type="submit">Create</button>
                     </div>
                 </div>
             </form>
@@ -131,7 +131,12 @@
         async selectConnector(con: Connector) {
             this.loading = true;
             this.selectedConnector = con;
-            await this.$store.dispatch('servers/refreshServers', {id: this.selectedConnector.id});
+            try {
+                await this.$store.dispatch('servers/refreshServers', {id: this.selectedConnector.id});
+            } catch {
+                config.eventBus.$emit('notify-error', "Connector is dead");
+                this.selectedConnector = '';
+            }
             this.loading = false;
         }
 

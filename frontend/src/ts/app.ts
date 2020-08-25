@@ -76,6 +76,10 @@ new Vue({
                             Logged in as: {{ readableName }}
                         </a>
                         <div class="dropdown-menu w-100">
+                            <router-link class="dropdown-item" v-if="isLoggedIn" to="/account/general">
+                                Account settings
+                            </router-link>
+                            <div class="dropdown-divider"></div>
                             <a href="#" class="dropdown-item" v-if="isLoggedIn" @click.prevent="logout">
                                 Logout
                             </a>

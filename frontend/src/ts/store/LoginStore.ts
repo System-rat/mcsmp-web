@@ -9,10 +9,17 @@ import ConnectorStore from "./servers/ConnectorStore";
 
 Vue.use(Vuex);
 
+export enum AccountType {
+    Standard,
+    Mojang
+}
+
 export class LoginState {
     public username?: string;
     public apiKey?: string = localStorage.getItem("api_key") || undefined;
     public displayName?: string;
+    public accountType?: AccountType;
+    public roles?: string[];
 }
 
 let store = new Store(<StoreOptions<LoginState>>{
@@ -26,11 +33,14 @@ let store = new Store(<StoreOptions<LoginState>>{
         setInfo(state: LoginState, payload: any) {
             Vue.set(state, 'username', payload.username);
             Vue.set(state, 'displayName', payload.display_name);
+            Vue.set(state, "accountType", payload.account_type);
+            Vue.set(state, 'roles', payload.roles)
         },
         invalidateLogin(state: LoginState) {
             Vue.set(state, 'apiKey', undefined);
             Vue.set(state, 'username', undefined);
             Vue.set(state, 'displayName', undefined);
+            Vue.set(state, "accountType", undefined);
             localStorage.removeItem("api_key");
             axios.defaults.headers.common["X-AUTH-TOKEN"] = "";
         }
@@ -38,7 +48,8 @@ let store = new Store(<StoreOptions<LoginState>>{
     getters: <GetterTree<LoginState, LoginState>> {
         isValid: state => {
             return state.apiKey !== undefined
-                && state.username !== undefined;
+                && state.username !== undefined
+                && state.accountType !== undefined;
         },
         readableName: state => {
             return state.displayName === undefined ? state.username : state.displayName;
@@ -64,6 +75,11 @@ let store = new Store(<StoreOptions<LoginState>>{
             if (response.status !== 200) {
                 return Promise.reject(new Error(response.data));
             }
+            if (response.data.is_mojang_account) {
+                response.data.account_type = AccountType.Mojang;
+            } else {
+                response.data.account_type = AccountType.Standard;
+            }
             context.commit('setInfo', response.data);
         },
         async logout(context: ActionContext<LoginState, LoginState>) {
@@ -72,6 +88,12 @@ let store = new Store(<StoreOptions<LoginState>>{
                 alert("You are already logged out!");
             }
             context.commit("invalidateLogin");
+        },
+        async changePassword(context: ActionContext<LoginState, LoginState>, payload: any) {
+            const params = new URLSearchParams();
+            params.append('old_password', payload.old_password);
+            params.append('new_password', payload.new_password);
+            await axios.post(config.baseUrl + "/api/user/change_password", params);
         }
     },
     modules: <ModuleTree<LoginState>> {
