@@ -20,10 +20,6 @@ export default new VueRouter({
             component: Dashboard
         },
         {
-            path: '/gallery',
-            component: Dashboard
-        },
-        {
             path: '/servers',
             component: ServerEditorList
         },

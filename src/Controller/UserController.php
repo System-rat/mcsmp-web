@@ -34,7 +34,8 @@ class UserController extends AbstractController
                "username" => $user->getUsername(),
                "display_name" => $user->getDisplayName(),
                "is_mojang_account" => $user->getIsMojangAccount(),
-               "roles" => $user->getRoles()
+               "roles" => $user->getRoles(),
+               "email" => $user->getEmail()
            ];
            return new JsonResponse($data);
         }

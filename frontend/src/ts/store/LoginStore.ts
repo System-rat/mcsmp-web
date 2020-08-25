@@ -20,6 +20,7 @@ export class LoginState {
     public displayName?: string;
     public accountType?: AccountType;
     public roles?: string[];
+    public email?: string;
 }
 
 let store = new Store(<StoreOptions<LoginState>>{
@@ -35,6 +36,7 @@ let store = new Store(<StoreOptions<LoginState>>{
             Vue.set(state, 'displayName', payload.display_name);
             Vue.set(state, "accountType", payload.account_type);
             Vue.set(state, 'roles', payload.roles)
+            Vue.set(state, 'email', payload.email)
         },
         invalidateLogin(state: LoginState) {
             Vue.set(state, 'apiKey', undefined);

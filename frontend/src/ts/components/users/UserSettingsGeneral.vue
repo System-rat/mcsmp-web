@@ -16,15 +16,20 @@
                         <td><input class="form-control" disabled :value="displayName"></td>
                     </tr>
                     <tr>
+                        <td><span class="pr-3"> Email </span></td>
+                        <td><input class="form-control" disabled :value="email"></td>
+                    </tr>
+                    <tr>
                         <td><span class="pr-3"> Account type </span></td>
                         <td><span> {{ accountTypeString(accountType) }} </span></td>
                     </tr>
                 </table>
             </div>
         </div>
-        <div class="row border">
+        <div class="row border" v-if="!isMojangAccount">
             <div class="col-6">
                 <h5 class="d-block"> Change password </h5>
+                <hr class="mt-2">
                 <form ref="form">
                     <div class="form-group">
                         <label for="old-pass"> Old password </label>
@@ -59,7 +64,8 @@ import { AccountType } from '../../store/LoginStore';
         ...mapState([
             'username',
             'displayName',
-            'accountType'
+            'accountType',
+            'email'
         ])
     }
 })
@@ -80,6 +86,10 @@ export default class UserSettingsGeneral extends Vue {
         return AccountType[at];
     }
 
+    get isMojangAccount(): boolean {
+        return this.$store.state.accountType === AccountType.Mojang;
+    }
+
     get isValid(): boolean {
         return !this.oldPassEqualNew
             && this.newPassValid
@@ -92,7 +102,7 @@ export default class UserSettingsGeneral extends Vue {
     }
 
     async changePassword() {
-        if (!this.isValid) {
+        if (!this.isValid || !this.isMojangAccount) {
             return;
         }
 

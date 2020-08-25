@@ -67,20 +67,19 @@ new Vue({
                 <div class="navbar-collapse collapse w-100 justify-content-between" id="navigation">
                     <div class="navbar-nav">
                         <router-link to="/" class="nav-item nav-link">Home</router-link>
-                        <router-link to="/gallery" class="nav-item nav-link">Gallery</router-link>
                         <router-link to="/servers" class="nav-item nav-link">Servers</router-link>
-                        <router-link to="/about" class="nav-item nav-link">About</router-link>
                     </div>
                     <div class="dropdown">
-                        <a v-if="readableName !== undefined" class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-                            Logged in as: {{ readableName }}
+                        <a v-if="readableName !== undefined" class="nav-link dropdown-toggle" href="" data-toggle="dropdown">
+                            <span class="fa fa-user pr-2"></span>
+                            {{ readableName }}
                         </a>
-                        <div class="dropdown-menu w-100">
-                            <router-link class="dropdown-item" v-if="isLoggedIn" to="/account/general">
+                        <div class="dropdown-menu dropdown-menu-right w-100">
+                            <router-link class="dropdown-item" v-if="isLoggedIn" to="/account/general" exact-active-class="" active-class="">
                                 Account settings
                             </router-link>
                             <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item" v-if="isLoggedIn" @click.prevent="logout">
+                            <a href="" class="dropdown-item" v-if="isLoggedIn" @click.prevent="logout">
                                 Logout
                             </a>
                         </div>
