@@ -21,7 +21,7 @@ composer install
 
 Create a `.env.local` file with the MySQL database connection string
 ```sh
-echo "mysql://user:password@localhost/mcsmp" > .env.local
+echo "DATABASE_URL=\"mysql://user:password@localhost/mcsmp\"" > .env.local
 ```
 
 Run the database migrations
